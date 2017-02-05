@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-YOUR HEADER COMMENT HERE
+Gene Finder
 
-@author: YOUR NAME HERE
+@author: Lakhvinder Jordan
 
 """
 
@@ -30,7 +30,6 @@ def get_complement(nucleotide):
     >>> get_complement('C')
     'G'
     """
-    # TODO: implement this
     if nucleotide == 'A':
         return 'T'
     elif nucleotide == 'T':
@@ -55,13 +54,12 @@ def get_reverse_complement(dna):
     >>> get_reverse_complement("CCGCGTTCA")
     'TGAACGCGG'
     """
-    # TODO: implement this
     result = ''
     n = len(dna)
     for i in range(n):
             index = n-1-i
             x = get_complement(dna[index])
-            result = result+x
+            result += x
     return result
 
 
@@ -82,7 +80,6 @@ def rest_of_ORF(dna):
     >>> rest_of_ORF("ATGAGTAAGTAAGACTAGATG")
     'ATGAGTAAG'
     """
-    # TODO: implement this
     n = len(dna)/3
     n = int(n)
     for i in range(1, n):
@@ -108,8 +105,7 @@ def find_all_ORFs_oneframe(dna):
     >>> find_all_ORFs_oneframe("AAAATGCATGAATGTAGATAGATGTGCCC")
     ['ATGCATGAATGTAGA', 'ATGTGCCC']
     """
-    # TODO: implement this
-    list = []
+    ORFs = []
     count = 0
     n = 0
     k = len(dna)
@@ -121,10 +117,10 @@ def find_all_ORFs_oneframe(dna):
                 n = n + 3
         if not k-n >= 3:
             break
-        list.insert(count, rest_of_ORF(dna[n:k]))
-        n = len(list[count])+3+n
-        count = count + 1
-    return list
+        ORFs.insert(count, rest_of_ORF(dna[n:k]))
+        n = len(ORFs[count])+3+n
+        count += 1
+    return ORFs
 
 
 def find_all_ORFs(dna):
@@ -140,12 +136,11 @@ def find_all_ORFs(dna):
     >>> find_all_ORFs("ATGCATGAATGTAG")
     ['ATGCATGAATGTAG', 'ATGAATGTAG', 'ATG']
     """
-    # TODO: implement this
     list0 = find_all_ORFs_oneframe(dna)
     list1 = find_all_ORFs_oneframe(dna[1:len(dna)])
     list2 = find_all_ORFs_oneframe(dna[2:len(dna)])
-    list = list0 + list1 + list2
-    return list
+    list3 = list0 + list1 + list2
+    return list3
 
 
 def find_all_ORFs_both_strands(dna):
@@ -157,11 +152,10 @@ def find_all_ORFs_both_strands(dna):
     >>> find_all_ORFs_both_strands("ATGCGAATGTAGCATCAAA")
     ['ATGCGAATG', 'ATGCTACATTCGCAT']
     """
-    # TODO: implement this
     lista = find_all_ORFs(dna)
     listb = find_all_ORFs(get_reverse_complement(dna))
-    list = lista + listb
-    return list
+    listc = lista + listb
+    return listc
 
 
 def longest_ORF(dna):
@@ -170,8 +164,8 @@ def longest_ORF(dna):
     >>> longest_ORF("ATGCGAATGTAGCATCAAA")
     'ATGCTACATTCGCAT'
     """
-    # TODO: implement this
-    pass
+    ORFs = find_all_ORFs_both_strands(dna)
+    return max(ORFs, key=len)
 
 
 def longest_ORF_noncoding(dna, num_trials):
@@ -181,8 +175,12 @@ def longest_ORF_noncoding(dna, num_trials):
         dna: a DNA sequence
         num_trials: the number of random shuffles
         returns: the maximum length longest ORF """
-    # TODO: implement this
-    pass
+    results = []
+    for i in range(num_trials):
+        shuffled = shuffle_string(dna)
+        longest = longest_ORF(shuffled)
+        results.append(longest)
+    return len(max(results, key=len))
 
 
 def coding_strand_to_AA(dna):
@@ -199,8 +197,14 @@ def coding_strand_to_AA(dna):
         >>> coding_strand_to_AA("ATGCCCGCTTT")
         'MPA'
     """
-    # TODO: implement this
-    pass
+    protein = ''
+    n = len(dna)
+    n += -(n % 3)
+    n = int(n)
+    for i in range(0, n, 3):
+        amino_acid = aa_table[dna[i:i+3]]
+        protein += amino_acid
+    return protein
 
 
 def gene_finder(dna):
@@ -209,9 +213,18 @@ def gene_finder(dna):
         dna: a DNA sequence
         returns: a list of all amino acid sequences coded by the sequence dna.
     """
-    # TODO: implement this
-    pass
+    results = []
+    threshold = longest_ORF_noncoding(dna, 1500)
+    potentials = find_all_ORFs_both_strands(dna)
+    for i in potentials:
+        if len(i) > threshold:
+            results.append(coding_strand_to_AA(i))
+    return results
 
-if __name__ == "__main__":
-    import doctest
-    doctest.run_docstring_examples(find_all_ORFs_both_strands, globals(), verbose=True)
+#if __name__ == "__main__":
+    #import doctest
+    #doctest.run_docstring_examples(coding_strand_to_AA, globals(), verbose=True)
+
+from load import load_seq
+dna = load_seq("./data/X73525.fa")
+print(gene_finder(dna))
