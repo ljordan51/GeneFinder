@@ -221,9 +221,10 @@ def gene_finder(dna):
             results.append(coding_strand_to_AA(i))
     return results
 
-#if __name__ == "__main__":
-    #import doctest
-    #doctest.run_docstring_examples(coding_strand_to_AA, globals(), verbose=True)
+# if __name__ == "__main__":
+    # import doctest
+    # doctest.run_docstring_examples(coding_strand_to_AA, globals(), verbose=True)
+
 
 from load import load_seq
 dna = load_seq("./data/X73525.fa")
